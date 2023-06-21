@@ -1,6 +1,8 @@
 package Desafio02_SistemaDeVendas;
 
 
+import org.springframework.security.crypto.bcrypt.BCrypt;
+
 import java.util.*;
 public class Cliente{
     public static Scanner scan = new Scanner(System.in);
@@ -8,17 +10,18 @@ public class Cliente{
     public static Map<String, List<String>> compraAssociada = new HashMap<>();
     public static List<String> listaCompras = new ArrayList<>();
 
+    public static Map<String, String> login = new HashMap<>();
+     static String senhaCrip, senha, cpf, email;
+
     public static void criarCliente() {
         clientes.put("73685377027", "anaLeviana@gmail.com"); //novo cliente
-        clientes.put("13546190050", "marceloMartelo@gmail.com"); //novo cliente
+        clientes.put("84759621366", "marceloMartelo@gmail.com");
     }
 
     public static void cadastrarCliente() {
 
-        criarCliente();
-
         System.out.println("Informe seu cpf: ");
-        String cpf = scan.next();
+         cpf = scan.next();
 
         while(cpf.contains(".") || cpf.contains("-") || cpf.length() < 11){
             System.out.println("CPF inválido, digite novamente os 11 dígitos, sem [.] e sem [-]");
@@ -28,19 +31,29 @@ public class Cliente{
         }
 
         System.out.println("Informe seu email: ");
-        String email = scan.next();
+        email = scan.next();
 
-        while (!(email.contains("@"))) {
-            System.out.println("Email inválido, tente novamente com @ ");
+        while (!(email.contains("@")) && !(email.contains("."))) {
+            System.out.println("Email inválido, tente novamente com [@] e [.]");
 
             System.out.println("Informe seu email: ");
             email = scan.next();
 
         }
 
+        System.out.println("Informe uma senha: ");
+        senha = scan.next();
+
+        while (!(senha.contains(" ")) && !(senha.length() >= 6)){
+            System.out.println("Senha inválida, por favor, tente novamente sem espaço e nem menos que 6 caracteres");
+            System.out.println("Informe uma senha: ");
+            senha = scan.next();
+        }
+
+        senhaCrip = BCrypt.hashpw(senha, BCrypt.gensalt());
+
         while (clientes.containsKey(cpf) || clientes.containsValue(email)) {
             System.out.println("Não foi possível realizar o cadastro, pois o Cliente já está em nosso sistema. Tente novamente\n");
-
             System.out.println("Informe seu cpf: ");
             cpf = scan.next();
 
@@ -49,10 +62,28 @@ public class Cliente{
         }
 
         clientes.put(cpf, email);
+
+        login.put(email, senhaCrip);
+
         System.out.println("Cliente cadastrado com sucesso!");
 
     }
 
+    public static void loginCliente(){
+
+        System.out.println("Informe seu email: ");
+        String verfEmail = scan.next();
+
+        System.out.println("Informe sua senha: ");
+        String senhaVerf = scan.next();
+
+        if (login.containsKey(verfEmail) && BCrypt.checkpw(senhaVerf, senhaCrip)){
+            System.out.println("Login efetuado");
+        }else {
+            System.out.println("Email ou senha incorretos, tente novamente");
+        }
+
+    }
     public static void mostrarClientes() {
 
         for (Map.Entry<String, String> entry : clientes.entrySet()) {
@@ -61,15 +92,10 @@ public class Cliente{
 
     }
 
-
     public static void Comprar() {
-
-        criarCliente();
-
 
         System.out.println("Informe seu cpf: ");
         String verf = scan.next();
-
         if (clientes.containsKey(verf)) {
             System.out.println("Digite o código do produto: ");
             listaCompras.add(scan.next());
@@ -102,6 +128,7 @@ public class Cliente{
     }
 
     public static void mostrarCompras() {
+
         System.out.println("Informe seu cpf");
         String verifc = scan.next();
 

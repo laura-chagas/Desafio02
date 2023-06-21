@@ -1,5 +1,7 @@
 package Desafio02_SistemaDeVendas;
 
+import org.springframework.security.crypto.bcrypt.BCrypt;
+
 import java.util.*;
 
 public class Vendedor {
@@ -7,6 +9,9 @@ public class Vendedor {
     public static Map<String, String> vendedores = new HashMap<>();
     public static Map<String, List<String>> vendaAssociada = new HashMap<>();
     public static List<String> listaVendas = new ArrayList<>();
+
+    public static Map<String, String> login = new HashMap<>();
+    static String senhaCrip, senha, cpf, email;
 
     public static void criarVendedores() {
         vendedores.put("mariaGostaria@gmail.com", "56747607058"); //novo vendedor
@@ -16,10 +21,8 @@ public class Vendedor {
 
     public static void cadastrarVendedor() {
 
-        criarVendedores();
-
         System.out.println("Informe seu cpf: ");
-        String cpf = scan.next();
+         cpf = scan.next();
 
         while (cpf.contains(".") || cpf.contains("-") || cpf.length() < 11) {
             System.out.println("CPF inválido, digite novamente os 11 dígitos, sem [.] e sem [-]");
@@ -29,15 +32,26 @@ public class Vendedor {
         }
 
         System.out.println("Informe seu email: ");
-        String email = scan.next();
-
-        while (!(email.contains("@"))) {
-            System.out.println("Email inválido, tente novamente com @ ");
+         email = scan.next();
+        while (!(email.contains("@")) && !(email.contains("."))) {
+            System.out.println("Email inválido, tente novamente com [@] e [.]");
 
             System.out.println("Informe seu email: ");
             email = scan.next();
 
         }
+
+        System.out.println("Informe uma senha: ");
+        senha = scan.next();
+
+        while (!(senha.contains(" ")) && !(senha.length() >= 6)){
+            System.out.println("Senha inválida, por favor, tente novamente sem espaço e nem menos que 6 caracteres");
+            System.out.println("Informe uma senha: ");
+            senha = scan.next();
+        }
+
+        senhaCrip = BCrypt.hashpw(senha, BCrypt.gensalt());
+
 
         while (vendedores.containsKey(email) || vendedores.containsValue(cpf)) {
             System.out.println("Não foi possível realizar o cadastro, pois o vendedor já está em nosso sistema. Tente novamente\n");
@@ -50,12 +64,12 @@ public class Vendedor {
         }
 
         vendedores.put(email, cpf);
+        login.put(email, senhaCrip);
         System.out.println("Vendedor cadastrado com sucesso!");
 
     }
 
     public static void mostrarVendedores() {
-
 
         for (Map.Entry<String, String> entry : vendedores.entrySet()) {
             System.out.println("EMAIL: " + entry.getKey() + ", CPF: " + entry.getValue());
@@ -63,9 +77,22 @@ public class Vendedor {
 
     }
 
-    public static void registrarVenda() {
+    public static void loginVendedor(){
 
-        criarVendedores();
+        System.out.println("Informe seu email: ");
+        String verfEmail = scan.next();
+
+        System.out.println("Informe sua senha: ");
+        String senhaVerf = scan.next();
+
+        if (login.containsKey(verfEmail) && BCrypt.checkpw(senhaVerf, senhaCrip)){
+            System.out.println("Login efetuado");
+        }else {
+            System.out.println("Email ou senha incorretos, tente novamente");
+        }
+
+    }
+    public static void registrarVenda() {
 
         System.out.println("Informe seu Email: ");
         String verf = scan.next();
